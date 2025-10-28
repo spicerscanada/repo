@@ -1,7 +1,7 @@
 name: Update Spamhaus DROP lists (JSONL → TXT)
 on:
   schedule:
-    - cron: "17 * * * *"   # run hourly at :17 — do NOT run more often than hourly
+    - cron: "17 */6 * * *"   # run every 6 hours at :17 starting 00:17 — do NOT run more often than hourly
   workflow_dispatch:
 
 jobs:
