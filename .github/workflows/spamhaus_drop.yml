@@ -1,29 +1,41 @@
-name: Update Spamhaus DROP/EDROP
+name: Update Spamhaus DROP lists (JSONL → TXT)
 on:
   schedule:
-    - cron: "11 * * * *"   # hourly; tune as needed
+    - cron: "17 * * * *"   # run hourly at :17 — do NOT run more often than hourly
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Fetch & convert v4 DROP
+
+      # IPv4 DROP
+      - name: Fetch DROP v4 JSONL
+        run: curl -fsSLo drop_v4.json https://www.spamhaus.org/drop/drop_v4.json
+      - name: Convert v4 JSONL → TXT
         run: |
-          curl -fsSL https://www.spamhaus.org/drop/drop_v4.json \
-          | jq -r '.drop[]?.cidr' > blocklists/spamhaus_drop_v4.txt
-      - name: Fetch & convert v6 EDROP
+          jq -r 'select(.type == null) | .cidr' drop_v4.json \
+          | sort -u > blocklists/spamhaus_drop_v4.txt
+
+      # IPv6 DROP
+      - name: Fetch DROP v6 JSONL
+        run: curl -fsSLo drop_v6.json https://www.spamhaus.org/drop/drop_v6.json
+      - name: Convert v6 JSONL → TXT
         run: |
-          curl -fsSL https://www.spamhaus.org/drop/drop_v6.json \
-          | jq -r '.edrop[]?.cidr' > blocklists/spamhaus_drop_v6.txt
-      - name: Dedup & sort
+          jq -r 'select(.type == null) | .cidr' drop_v6.json \
+          | sort -u > blocklists/spamhaus_drop_v6.txt
+
+      # Optional: combined file (v4 + v6) if you want just one URL on FGT
+      - name: Build combined list
         run: |
-          sort -u blocklists/spamhaus_drop_v4.txt -o blocklists/spamhaus_drop_v4.txt
-          sort -u blocklists/spamhaus_drop_v6.txt -o blocklists/spamhaus_drop_v6.txt
+          cat blocklists/spamhaus_drop_v4.txt blocklists/spamhaus_drop_v6.txt \
+          | sort -u > blocklists/spamhaus_drop_all.txt
+
       - name: Commit changes
         run: |
           git config user.name "ti-bot"
           git config user.email "ti-bot@users.noreply.github.com"
-          git add blocklists/spamhaus_*drop_*.txt
-          git commit -m "Update Spamhaus DROP/EDROP" || echo "No changes"
+          git add blocklists/spamhaus_drop_v4.txt blocklists/spamhaus_drop_v6.txt blocklists/spamhaus_drop_all.txt
+          git commit -m "Update Spamhaus DROP v4/v6 (hourly)" || echo "No changes"
           git push
