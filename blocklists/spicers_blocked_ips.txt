@@ -1,3 +1,10 @@
+# Added by Spicers Canada
+
+# Requested by CNG
+
+# Requested by Legato
+
+# SSLVPN Attack Spain - Serviga
 79.132.135.0/24
 78.138.9.0/24
 63.251.122.0/24
