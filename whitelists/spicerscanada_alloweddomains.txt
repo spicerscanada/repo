@@ -1,0 +1,11 @@
+Allowed domains
+
+# Spicers Canada internal domains
+*.spicers.ca
+*.spicerscanada.ca
+*.domain.local
+
+# CNG Group domains
+*.cng-inc.com
+*.kellyspicers.com
+*.sprich.com
